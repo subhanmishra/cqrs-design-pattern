@@ -49,5 +49,44 @@ services:
       - ./mysql-data:/var/lib/mysqlinit.sql
       - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
 
+  postgres:
+    image: postgres:latest
+    container_name: cqrs_postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=product_query_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    #      - PGUSER=postgres
+    #      - POSTGRES_NAME=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
+
+  pgadmin:
+    container_name: cqrs_pgadmin
+    image: dpage/pgadmin4:latest
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@localhost.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_LISTEN_PORT: 5050
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    volumes:
+      - ./pgadmin:/var/lib/pgadmin
+      - ./docker/pgadmin/docker_pgadmin_servers.json:/pgadmin4/servers.json
+    ports:
+      - '5050:5050'
+    entrypoint:
+      - "/bin/sh"
+      - "-c"
+      - "/bin/echo 'postgres:5432:*:postgres:postgres' > /tmp/pgpassfile && chmod 600 /tmp/pgpassfile && /entrypoint.sh"
+    depends_on:
+      - postgres
+
 volumes:
   mysql-data:
+  postgres:
+  pgadmin:
